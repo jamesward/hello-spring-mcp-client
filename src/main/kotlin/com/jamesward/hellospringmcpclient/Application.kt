@@ -1,8 +1,7 @@
 package com.jamesward.hellospringmcpclient
 
-import io.modelcontextprotocol.client.McpSyncClient
 import org.springframework.ai.chat.client.ChatClient
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider
+import org.springframework.ai.tool.ToolCallbackProvider
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -12,16 +11,13 @@ import org.springframework.context.annotation.Bean
 class Application {
 
     @Bean
-    fun chatClient(mcpSyncClients: List<McpSyncClient>, builder: ChatClient.Builder): ChatClient =
-        builder
-            .defaultToolCallbacks(SyncMcpToolCallbackProvider(mcpSyncClients))
-            .defaultSystem(mcpSyncClients.joinToString("\n") { it.serverInstructions })
-            .build()
+    fun chatClient(toolCallbackProvider: ToolCallbackProvider, builder: ChatClient.Builder): ChatClient =
+        builder.defaultToolCallbacks(toolCallbackProvider).build()
 
-    val question = "for the tool server, get the number of open connections and active connections"
+    val question = "What is the latest version of the org.webjars:webjars-locator-lite library?"
 
     @Bean
-    fun runner(chatClient: ChatClient) = ApplicationRunner { args ->
+    fun runner(chatClient: ChatClient) = ApplicationRunner {
         println(chatClient.prompt().user(question).call().content())
     }
 }
